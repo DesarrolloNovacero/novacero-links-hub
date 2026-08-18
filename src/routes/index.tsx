@@ -183,16 +183,18 @@ function ProgramCard({ program }: { program: Program }) {
         </span>
       </div>
       <div>
-        <h3 className="text-lg font-semibold text-card-foreground">{program.title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-card-foreground">{program.title}</h3>
+          {program.featured && (
+            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
+              Destacado
+            </span>
+          )}
+        </div>
         <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
           {program.description}
         </p>
       </div>
-      {program.featured && (
-        <span className="absolute right-0 top-0 rounded-bl-xl bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-          Destacado
-        </span>
-      )}
     </a>
   );
 }
