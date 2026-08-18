@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BarChart3,
   BookOpen,
   Briefcase,
   ClipboardList,
-  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,7 +38,7 @@ interface Program {
   description: string;
   href: string;
   icon: LucideIcon;
-  status?: "temporal" | "destacado";
+  status: "active" | "temporal";
 }
 
 const programs: Program[] = [
@@ -57,6 +56,7 @@ const programs: Program[] = [
     description: "Planificación y desarrollo profesional de los colaboradores.",
     href: "https://ruta-carrera.ejemplo.com",
     icon: BarChart3,
+    status: "active",
   },
   {
     id: "capacitacion",
@@ -64,6 +64,7 @@ const programs: Program[] = [
     description: "Cursos, formación y seguimiento de capacitaciones corporativas.",
     href: "https://capacitacion.ejemplo.com",
     icon: BookOpen,
+    status: "active",
   },
   {
     id: "desempeno",
@@ -71,8 +72,26 @@ const programs: Program[] = [
     description: "Evaluación de competencias, metas y retroalimentación.",
     href: "https://desempeno.ejemplo.com",
     icon: ClipboardList,
+    status: "active",
   },
 ];
+
+function StatusBadge({ status }: { status: Program["status"] }) {
+  if (status === "active") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 ring-1 ring-inset ring-emerald-500/20">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Activo
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 ring-1 ring-inset ring-amber-500/20">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+      Temporal
+    </span>
+  );
+}
 
 function ProgramCard({ program }: { program: Program }) {
   const Icon = program.icon;
@@ -107,36 +126,24 @@ function ProgramCard({ program }: { program: Program }) {
       <div>
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-card-foreground">{program.title}</h3>
-          {program.status === "temporal" && (
-            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-              Temporal
-            </span>
-          )}
-          {program.status === "destacado" && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-              Destacado
-            </span>
-          )}
         </div>
         <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
           {program.description}
         </p>
+      </div>
+      <div className="mt-auto pt-2">
+        <StatusBadge status={program.status} />
       </div>
     </a>
   );
 }
 
 function Index() {
-  const [query, setQuery] = useState("");
-
-  const filteredPrograms = programs.filter((program) => {
-    const normalized = query.toLowerCase().trim();
-    if (!normalized) return true;
-    return (
-      program.title.toLowerCase().includes(normalized) ||
-      program.description.toLowerCase().includes(normalized)
-    );
-  });
+  const counts = useMemo(() => {
+    const active = programs.filter((p) => p.status === "active").length;
+    const temporal = programs.filter((p) => p.status === "temporal").length;
+    return { active, temporal };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,27 +191,25 @@ function Index() {
         </div>
       </section>
 
-      {/* Search and programs */}
+      {/* Status summary */}
       <section id="programas" className="relative -mt-8 z-10 px-6">
         <div className="mx-auto max-w-7xl rounded-2xl border border-border bg-card p-6 shadow-lg md:p-8">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
             <div>
               <h2 className="text-2xl font-bold text-foreground">Programas disponibles</h2>
               <p className="mt-1 text-muted-foreground">
-                {filteredPrograms.length} de {programs.length} aplicaciones corporativas listas para usar.
+                {programs.length} aplicaciones corporativas listas para usar.
               </p>
             </div>
-            <div className="relative w-full md:w-80">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
-                <Search className="h-4 w-4" />
-              </div>
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar programa..."
-                className="w-full rounded-full border border-border bg-muted py-2.5 pl-10 pr-4 text-sm text-foreground outline-none ring-offset-background transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                {counts.active} activo{counts.active !== 1 ? "s" : ""}
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                {counts.temporal} temporal{counts.temporal !== 1 ? "es" : ""}
+              </span>
             </div>
           </div>
         </div>
@@ -214,47 +219,12 @@ function Index() {
       <main className="px-6 py-12 md:py-16">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {filteredPrograms.map((program) => (
+            {programs.map((program) => (
               <ProgramCard key={program.id} program={program} />
             ))}
           </div>
-
-          {filteredPrograms.length === 0 && (
-            <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 py-16 text-center">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <Search className="h-5 w-5" />
-              </div>
-              <p className="mt-4 text-sm font-medium text-muted-foreground">
-                No se encontraron programas con "{query}".
-              </p>
-              <button
-                onClick={() => setQuery("")}
-                className="mt-2 text-sm font-semibold text-primary hover:underline"
-              >
-                Limpiar búsqueda
-              </button>
-            </div>
-          )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/50 px-6 py-10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-nova-black text-nova-yellow">
-              <span className="text-lg font-bold">N</span>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">Novacero</p>
-              <p className="text-xs text-muted-foreground">Repositorio de programas</p>
-            </div>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Novacero. Todos los derechos reservados.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
