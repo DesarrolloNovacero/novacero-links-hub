@@ -1,19 +1,11 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   BarChart3,
-  Box,
-  CalendarDays,
+  BookOpen,
+  Briefcase,
   ClipboardList,
-  Cpu,
-  FileText,
-  FolderKanban,
-  Globe,
-  HardHat,
-  Layers,
-  Megaphone,
-  ShieldCheck,
-  Truck,
-  Users,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -47,108 +39,38 @@ interface Program {
   description: string;
   href: string;
   icon: LucideIcon;
-  featured?: boolean;
+  status?: "temporal" | "destacado";
 }
 
 const programs: Program[] = [
   {
-    id: "erp",
-    title: "ERP Corporativo",
-    description: "Gestión integral de recursos, finanzas y operaciones.",
-    href: "https://erp.ejemplo.com",
+    id: "thcf002",
+    title: "THCF002",
+    description: "Portal de talento humano y gestión de colaboradores.",
+    href: "https://thcf002.ejemplo.com",
+    icon: Briefcase,
+    status: "temporal",
+  },
+  {
+    id: "ruta-carrera",
+    title: "Ruta de Carrera",
+    description: "Planificación y desarrollo profesional de los colaboradores.",
+    href: "https://ruta-carrera.ejemplo.com",
     icon: BarChart3,
-    featured: true,
   },
   {
-    id: "inventory",
-    title: "Inventarios de Acero",
-    description: "Control de materiales, bobinas, perfiles y despachos.",
-    href: "https://inventario.ejemplo.com",
-    icon: Box,
+    id: "capacitacion",
+    title: "Sistema de Capacitación",
+    description: "Cursos, formación y seguimiento de capacitaciones corporativas.",
+    href: "https://capacitacion.ejemplo.com",
+    icon: BookOpen,
   },
   {
-    id: "production",
-    title: "Producción",
-    description: "Planeación de planta, órdenes y seguimiento de líneas.",
-    href: "https://produccion.ejemplo.com",
-    icon: Cpu,
-  },
-  {
-    id: "safety",
-    title: "Seguridad Industrial",
-    description: "Reportes HSE, inspecciones y capacitaciones.",
-    href: "https://seguridad.ejemplo.com",
-    icon: ShieldCheck,
-  },
-  {
-    id: "maintenance",
-    title: "Mantenimiento",
-    description: "OTs preventivas, correctivas y gestión de activos.",
-    href: "https://mantenimiento.ejemplo.com",
-    icon: HardHat,
-  },
-  {
-    id: "logistics",
-    title: "Logística y Transporte",
-    description: "Rutas, flota, entregas y tracking de embarques.",
-    href: "https://logistica.ejemplo.com",
-    icon: Truck,
-  },
-  {
-    id: "hr",
-    title: "Talento Humano",
-    description: "Nómina, asistencia, vacantes y desarrollo.",
-    href: "https://rrhh.ejemplo.com",
-    icon: Users,
-  },
-  {
-    id: "portal",
-    title: "Portal del Colaborador",
-    description: "Consultas, documentos y servicios internos.",
-    href: "https://portal.ejemplo.com",
-    icon: Globe,
-  },
-  {
-    id: "projects",
-    title: "Gestión de Proyectos",
-    description: "Portafolio de proyectos, hitos y recursos.",
-    href: "https://proyectos.ejemplo.com",
-    icon: FolderKanban,
-  },
-  {
-    id: "docs",
-    title: "Documentación Técnica",
-    description: "Manuales, especificaciones y normas de calidad.",
-    href: "https://documentos.ejemplo.com",
-    icon: FileText,
-  },
-  {
-    id: "quality",
-    title: "Calidad y Laboratorio",
-    description: "Ensayos, certificados y control de calidad.",
-    href: "https://calidad.ejemplo.com",
+    id: "desempeno",
+    title: "Gestión de Desempeño",
+    description: "Evaluación de competencias, metas y retroalimentación.",
+    href: "https://desempeno.ejemplo.com",
     icon: ClipboardList,
-  },
-  {
-    id: "schedule",
-    title: "Turnos y Agendas",
-    description: "Programación de turnos, salas y reuniones.",
-    href: "https://agenda.ejemplo.com",
-    icon: CalendarDays,
-  },
-  {
-    id: "comms",
-    title: "Comunicaciones",
-    description: "Noticias internas, campañas y canales corporativos.",
-    href: "https://comunicaciones.ejemplo.com",
-    icon: Megaphone,
-  },
-  {
-    id: "catalog",
-    title: "Catálogo de Productos",
-    description: "Fichas técnicas y disponibilidad comercial.",
-    href: "https://catalogo.ejemplo.com",
-    icon: Layers,
   },
 ];
 
@@ -185,7 +107,12 @@ function ProgramCard({ program }: { program: Program }) {
       <div>
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-card-foreground">{program.title}</h3>
-          {program.featured && (
+          {program.status === "temporal" && (
+            <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+              Temporal
+            </span>
+          )}
+          {program.status === "destacado" && (
             <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
               Destacado
             </span>
@@ -200,6 +127,17 @@ function ProgramCard({ program }: { program: Program }) {
 }
 
 function Index() {
+  const [query, setQuery] = useState("");
+
+  const filteredPrograms = programs.filter((program) => {
+    const normalized = query.toLowerCase().trim();
+    if (!normalized) return true;
+    return (
+      program.title.toLowerCase().includes(normalized) ||
+      program.description.toLowerCase().includes(normalized)
+    );
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
@@ -246,19 +184,27 @@ function Index() {
         </div>
       </section>
 
-      {/* Search hint */}
+      {/* Search and programs */}
       <section id="programas" className="relative -mt-8 z-10 px-6">
         <div className="mx-auto max-w-7xl rounded-2xl border border-border bg-card p-6 shadow-lg md:p-8">
-          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-bold text-foreground">Programas disponibles</h2>
               <p className="mt-1 text-muted-foreground">
-                {programs.length} aplicaciones corporativas listas para usar.
+                {filteredPrograms.length} de {programs.length} aplicaciones corporativas listas para usar.
               </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-2 text-sm text-muted-foreground">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              Todos los sistemas operativos
+            <div className="relative w-full md:w-80">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </div>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar programa..."
+                className="w-full rounded-full border border-border bg-muted py-2.5 pl-10 pr-4 text-sm text-foreground outline-none ring-offset-background transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
             </div>
           </div>
         </div>
@@ -267,11 +213,28 @@ function Index() {
       {/* Grid */}
       <main className="px-6 py-12 md:py-16">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {programs.map((program) => (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {filteredPrograms.map((program) => (
               <ProgramCard key={program.id} program={program} />
             ))}
           </div>
+
+          {filteredPrograms.length === 0 && (
+            <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/50 py-16 text-center">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Search className="h-5 w-5" />
+              </div>
+              <p className="mt-4 text-sm font-medium text-muted-foreground">
+                No se encontraron programas con "{query}".
+              </p>
+              <button
+                onClick={() => setQuery("")}
+                className="mt-2 text-sm font-semibold text-primary hover:underline"
+              >
+                Limpiar búsqueda
+              </button>
+            </div>
+          )}
         </div>
       </main>
 
